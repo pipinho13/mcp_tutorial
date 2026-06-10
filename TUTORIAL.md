@@ -27,10 +27,11 @@ they differ.
 6. [Test the server (two ways)](#6-test-the-server-two-ways)
 7. [Connect to Claude Desktop](#7-connect-to-claude-desktop)
 8. [Connect to Claude Code](#8-connect-to-claude-code)
-9. [Make changes and iterate](#9-make-changes-and-iterate)
-10. [How reproducibility works](#10-how-reproducibility-works)
-11. [Troubleshooting](#11-troubleshooting)
-12. [Next steps](#12-next-steps)
+9. [Bonus: Write your own client (`client.py`)](#9-bonus-write-your-own-client-clientpy)
+10. [Make changes and iterate](#10-make-changes-and-iterate)
+11. [How reproducibility works](#11-how-reproducibility-works)
+12. [Troubleshooting](#12-troubleshooting)
+13. [Next steps](#13-next-steps)
 
 ---
 
@@ -60,6 +61,12 @@ Your server exposes two kinds of capabilities:
 
 Claude can never touch your files directly. It can only do what your tools
 allow. **You** define the boundary.
+
+> **Do I need to write both a client and a server?** No. For the normal goal —
+> *"let Claude use my tools"* — you write only the **server**. The **client**
+> already exists: it's Claude Desktop or Claude Code. We cover that in steps 7
+> and 8. Step 9 then builds a small client *from scratch* so you can see what
+> that side actually does — but it's a bonus, not a requirement.
 
 ---
 
@@ -412,7 +419,97 @@ claude mcp remove notes
 
 ---
 
-## 9. Make changes and iterate
+## 9. Bonus: Write your own client (`client.py`)
+
+So far the **client** has been someone else's app (Claude Desktop, Claude Code).
+This optional step builds a tiny client yourself, so the two-sided architecture
+stops being abstract. It's in the repo as `client.py`.
+
+### What this client does
+
+A real MCP client has two jobs, and `client.py` does both:
+
+1. **It's an MCP client** to your notes server — it launches the server,
+   performs the MCP handshake, asks for the tool list, and calls tools.
+2. **It's a Claude API client** — it sends your messages to Claude and, when
+   Claude asks to use a tool, runs it on the server and feeds the result back.
+
+```
+You ─▶ client.py ──Claude API──▶ Claude
+            │  ◀── "call add_note" ──┘
+            │
+            └──MCP──▶ notes_server.py ─▶ notes/*.md
+```
+
+The notes server never talks to Claude. `client.py` is the glue in the middle —
+exactly the role Claude Desktop plays in step 7.
+
+### The heart of it
+
+The core is a loop: send the conversation to Claude with the tool list; if
+Claude's `stop_reason` is `"tool_use"`, run each requested tool on the MCP
+session and append the results; repeat until Claude answers in plain text.
+
+```python
+response = await claude.messages.create(
+    model="claude-opus-4-8", max_tokens=2048,
+    system=SYSTEM_PROMPT, messages=messages, tools=tools,
+)
+messages.append({"role": "assistant", "content": response.content})
+
+if response.stop_reason == "tool_use":
+    for block in response.content:
+        if block.type == "tool_use":
+            result = await session.call_tool(block.name, block.input)  # ← runs on the server
+            # ...append a tool_result and loop again
+```
+
+Read the full file — it's commented step by step.
+
+### Run it
+
+You need an **Anthropic API key** (this client calls the Claude API directly,
+which Claude Desktop did for you). Get one from
+<https://console.anthropic.com>, then:
+
+```bash
+export ANTHROPIC_API_KEY="sk-ant-..."
+uv run client.py
+```
+
+If the key isn't set, the client tells you and exits — it won't crash.
+
+A sample session:
+
+```
+Connected. Server offers 6 tools: add_note, delete_note, list_notes, read_note, search_notes, update_note
+Type your message (or 'quit' to exit).
+
+You: save a note called Books with: Dune, Project Hail Mary
+  [tool] add_note({'title': 'Books', 'content': 'Dune, Project Hail Mary'})
+Claude: Saved your "Books" note with Dune and Project Hail Mary.
+
+You: what notes do I have?
+  [tool] list_notes({})
+Claude: You have one note: Books.
+
+You: quit
+Bye!
+```
+
+The `[tool]` lines show your client calling the server — the exact moment the
+two halves meet. Note how `client.py` launches the server itself
+(`StdioServerParameters(command=sys.executable, args=["notes_server.py"])`), so
+you don't start the server separately; the client owns its lifecycle, just like
+Claude Desktop does.
+
+> **Server vs. client recap:** the server (`notes_server.py`) is reusable by any
+> MCP client. Writing `client.py` is only necessary if you're building your own
+> host app instead of using Claude Desktop/Code.
+
+---
+
+## 10. Make changes and iterate
 
 Want to add your own tool? Edit `notes_server.py`. For example, a tool that
 counts notes:
@@ -436,7 +533,7 @@ updates `pyproject.toml` **and** `uv.lock`), then commit both files.
 
 ---
 
-## 10. How reproducibility works
+## 11. How reproducibility works
 
 This project is set up so that **anyone who clones it gets the exact same
 environment**. Three files make that happen — and all three are committed to
@@ -464,7 +561,7 @@ When someone runs `uv sync`, uv reads all three and recreates an identical
 
 ---
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
@@ -475,6 +572,8 @@ When someone runs `uv sync`, uv reads all three and recreates an identical
 | Server fails to start in Claude | `uv` likely isn't on Claude's PATH. Use the full path from `which uv` as `"command"`. |
 | Tools run but write nowhere | Check the `notes/` folder in the **project** directory; the path is relative to `notes_server.py`. |
 | `ModuleNotFoundError: mcp` | You ran plain `python` instead of `uv run python`. Always prefix with `uv run`, or activate `.venv`. |
+| `client.py` says API key not set | Run `export ANTHROPIC_API_KEY="sk-ant-..."` in the same terminal first (see step 9). |
+| `client.py` errors on the model name | Your `anthropic` package may be older than the model. `uv sync` to get the pinned version, or update with `uv add anthropic`. |
 
 To inspect what's installed:
 
@@ -484,7 +583,7 @@ uv pip list
 
 ---
 
-## 12. Next steps
+## 13. Next steps
 
 - **Add a `prompt`.** `@mcp.prompt()` ships reusable prompt templates (e.g.
   "summarize all my notes"). See the SDK docs.

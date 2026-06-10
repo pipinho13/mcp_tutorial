@@ -24,6 +24,11 @@ Claude talk to external programs. You write a small **server** exposing:
 Claude is the **client**: when you ask it something, it can decide to call your
 tools. Build the server once, and any MCP-aware app can use it.
 
+> **Do I need to write a client too?** Usually no — the client is an existing
+> app like **Claude Desktop** or **Claude Code**. You only write a server. This
+> repo includes an optional `client.py` purely to *show* what a client does
+> under the hood; see [`TUTORIAL.md` §9](./TUTORIAL.md#9-bonus-write-your-own-client-clientpy).
+
 ---
 
 ## Quickstart
@@ -68,8 +73,9 @@ Full details, expected output, and troubleshooting are in
 
 | File                 | Purpose                                                        |
 | -------------------- | -------------------------------------------------------------- |
-| `notes_server.py`    | The MCP server: 6 tools + 1 resource                           |
-| `pyproject.toml`     | Project metadata, requires Python ≥ 3.10, depends on `mcp[cli]`|
+| `notes_server.py`    | The MCP **server**: 6 tools + 1 resource                       |
+| `client.py`          | Optional standalone MCP **client** — chat with the server from your terminal (no Claude Desktop needed) |
+| `pyproject.toml`     | Project metadata, requires Python ≥ 3.10, depends on `mcp[cli]` and `anthropic` |
 | `uv.lock`            | Exact pinned versions of every dependency (commit this!)       |
 | `.python-version`    | Pins the Python interpreter to 3.12 for reproducibility        |
 | `TUTORIAL.md`        | The complete step-by-step walkthrough                          |
