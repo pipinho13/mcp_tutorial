@@ -11,3 +11,8 @@ notes/
 
 # Local Claude Code settings (machine-specific)
 .claude/
+
+# Secrets — NEVER commit your API key. Only .env.example (a placeholder) is tracked.
+.env
+.env.local
+.env.*.local

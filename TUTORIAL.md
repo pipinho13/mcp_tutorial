@@ -470,14 +470,31 @@ Read the full file — it's commented step by step.
 
 You need an **Anthropic API key** (this client calls the Claude API directly,
 which Claude Desktop did for you). Get one from
-<https://console.anthropic.com>, then:
+<https://console.anthropic.com>.
+
+The recommended way to provide it is a `.env` file, which is **git-ignored** so
+your key never gets committed:
+
+```bash
+cp .env.example .env       # then open .env and paste your key
+uv run client.py
+```
+
+`client.py` loads `.env` automatically (via `python-dotenv`). Alternatively,
+export it for the current shell only:
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
 uv run client.py
 ```
 
-If the key isn't set, the client tells you and exits — it won't crash.
+If no real key is found (missing, or still the placeholder), the client tells
+you and exits — it won't crash.
+
+> 🔒 **Never paste your key into a tracked file, a commit, or a chat.** Keys in
+> public repos are auto-detected and revoked within minutes. If a key is ever
+> exposed, rotate it immediately in the console. The `.env` / `.env.example`
+> split exists precisely so the real secret stays on your machine.
 
 A sample session:
 

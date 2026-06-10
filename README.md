@@ -78,6 +78,7 @@ Full details, expected output, and troubleshooting are in
 | `pyproject.toml`     | Project metadata, requires Python ≥ 3.10, depends on `mcp[cli]` and `anthropic` |
 | `uv.lock`            | Exact pinned versions of every dependency (commit this!)       |
 | `.python-version`    | Pins the Python interpreter to 3.12 for reproducibility        |
+| `.env.example`       | Template for your API key — copy to `.env` (git-ignored) and fill in |
 | `TUTORIAL.md`        | The complete step-by-step walkthrough                          |
 | `.gitignore`         | Excludes the virtual env and your personal notes from git      |
 

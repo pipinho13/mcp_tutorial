@@ -23,8 +23,12 @@ import os
 import sys
 
 import anthropic
+from dotenv import load_dotenv
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
+
+# Load ANTHROPIC_API_KEY from a local .env file if present (git-ignored).
+load_dotenv()
 
 MODEL = "claude-opus-4-8"
 
@@ -114,10 +118,12 @@ async def run_chat(session: ClientSession, claude: anthropic.AsyncAnthropic) -> 
 
 
 async def main() -> None:
-    if not os.environ.get("ANTHROPIC_API_KEY"):
+    key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not key or key == "sk-ant-your-key-here":
         sys.exit(
-            "ANTHROPIC_API_KEY is not set.\n"
-            'Set it first:  export ANTHROPIC_API_KEY="sk-ant-..."'
+            "No real ANTHROPIC_API_KEY found.\n"
+            "Put your key in a .env file (cp .env.example .env, then edit it),\n"
+            'or export it:  export ANTHROPIC_API_KEY="sk-ant-..."'
         )
 
     # Launch the server with the SAME Python that's running this client, so it
