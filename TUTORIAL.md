@@ -120,8 +120,8 @@ uv 0.11.19
 If you're reading this on GitHub, clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/mcp-notes-tutorial.git
-cd mcp-notes-tutorial
+git clone https://github.com/pipinho13/mcp_tutorial.git
+cd mcp_tutorial
 ```
 
 (Replace the URL with your fork's URL.)
