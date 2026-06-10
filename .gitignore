@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# uv
+.uv/
+
+# Your actual notes (don't commit personal data)
+notes/
+
+# Local Claude Code settings (machine-specific)
+.claude/

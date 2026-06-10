@@ -1,0 +1,9 @@
+[project]
+name = "mcp-notes-tutorial"
+version = "0.1.0"
+description = "A beginner MCP server tutorial: a personal notes manager for Claude"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.2.0",
+]
