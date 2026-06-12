@@ -256,17 +256,28 @@ The SDK ships a browser-based Inspector:
 uv run mcp dev notes_server.py
 ```
 
+> ⚠️ **The Inspector needs Node.js.** `mcp dev` launches the Inspector UI with
+> `npx`, so Node.js + npm must be installed and on your `PATH`. If you see
+> `npx not found`, install Node first (e.g. `brew install node` on macOS, or the
+> installer from <https://nodejs.org>), then re-run the command. Don't need the
+> visual UI? Use **Option B** below — it requires no Node.
+
 This launches a local web UI (it prints a URL, usually
 `http://localhost:6274`). In the Inspector:
 
-1. Go to the **Tools** tab → click **List Tools**. You'll see all six:
+1. **Click the dark `▷ Connect` button** in the left panel. The pre-filled
+   **Command** (`uv`) and **Arguments** (`run ... mcp run notes_server.py`)
+   tell the Inspector how to start your server over **STDIO**. The status at the
+   bottom left flips from **Disconnected** to **Connected**, and the **Tools**,
+   **Resources**, and **Prompts** tabs become available.
+2. Go to the **Tools** tab → click **List Tools**. You'll see all six:
    `add_note`, `update_note`, `list_notes`, `read_note`, `search_notes`,
    `delete_note`.
-2. Select `add_note`, enter title `Groceries` and content `Milk, eggs, bread`,
+3. Select `add_note`, enter title `Groceries` and content `Milk, eggs, bread`,
    and click **Run Tool**. You'll get back `Saved note 'Groceries'.`
-3. Run `list_notes` (no arguments) → it returns `Your notes:` followed by
+4. Run `list_notes` (no arguments) → it returns `Your notes:` followed by
    `- groceries`.
-4. Open the **Resources** tab → you'll see `notes://all`.
+5. Open the **Resources** tab → you'll see `notes://all`.
 
 Look in the project's `notes/` folder — there's now a real `groceries.md` file.
 
